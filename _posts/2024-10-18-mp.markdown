@@ -1,7 +1,7 @@
 ---
 layout:     post
 title:      "First test"
-date:       2024年10月18日 13:10:31
+date:       2024-10-18 13:10:31
 author:     "LwqSky"
 header-img: "img/post-bg-2015.jpg"
 catalog: true
