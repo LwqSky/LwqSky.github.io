@@ -1,0 +1,249 @@
+---
+layout:     post
+title:      "First test"
+date:       2024年10月18日 13:10:31
+author:     "LwqSky"
+header-img: "img/post-bg-2015.jpg"
+catalog: true
+tags:
+    - Meta
+---
+
+# 数据结构之栈（顺序存储+链式存储）
+
+## 顺序存储
+```
+#include <stdio.h>
+#define MaxSize 10
+typedef struct {
+	int data[MaxSize];
+	int top;
+} SqStack;
+
+void InitStack(SqStack &S) {
+	S.top = -1;
+}
+
+bool StackEmpty(SqStack S) {
+	//当 S 是空栈时，StackEmpty(S) 返回 true，因此 empty 的值是 1。
+	//当 S 不是空栈时，StackEmpty(S) 返回 false，因此 empty 的值是 0。
+	if(S.top == -1)
+		return true; // 栈为空
+	return false; // 栈非空
+}
+
+//入栈操作
+bool Push(SqStack &S,int &e) {
+	if(S.top==MaxSize-1)//栈满  报错！
+		return false;
+	S.top++;
+	S.data[S.top]=e;
+	//S.data[++S.top];	//先让指针加1，在进行入栈
+	return true;
+}
+
+//出栈操作
+bool pop(SqStack &S,int &e) {
+	if(S.top==-1)	//栈空  报错！
+		return false;
+	e=S.data[S.top];
+	S.top--;
+	//e=S.data[S.top--];	//先出栈，指针在减1
+	return true;
+}
+
+
+//读取栈顶元素
+bool GetTop(SqStack S,int &x) {
+	if(S.top==-1)		//栈空，报错
+		return false;
+	x=S.data[S.top];	//记录栈顶元素
+	return true;
+}
+
+
+
+void testStack() {
+	SqStack S;
+	InitStack(S);
+	bool empty = StackEmpty(S);
+	printf("%d\n", empty); // 使用 %d 打印布尔值的整数表示
+}
+
+int main() {
+	testStack();
+	return 0;
+}
+
+```
+用**牢记住top初始化**的值，其可以有两种呈现方式，一种是-1（数组取不到的数字），另一种让其为0，让其代指为数组的下标。其余操作可以理解何为**top的妙用**
+## 链式存储
+```
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdbool.h>
+
+// 定义链栈结点的结构体
+typedef struct LinkNode {
+	int data; // 数据域
+	struct LinkNode* next; // 指针域
+} LinkNode;
+
+// 定义链栈的指针类型
+typedef LinkNode* LiStack;
+
+// 初始化链栈
+void InitStack(LiStack* S) {
+	*S = NULL; // 将栈顶指针置为 NULL
+}
+
+// 入栈操作
+bool PushStack(LiStack* S, int value) {
+	LinkNode* newNode = (LinkNode*)malloc(sizeof(LinkNode));
+	if (newNode == NULL) {
+		return false; // 内存分配失败
+	}
+
+	newNode->data = value;
+	newNode->next = *S; // 新结点的 next 指向当前栈顶
+	*S = newNode; // 更新栈顶指针为新结点
+	return true;
+}
+
+// 出栈操作
+bool PopStack(LiStack* S, int* value) {
+	if (*S == NULL) {
+		return false; // 栈空，出栈失败
+	}
+
+	LinkNode* temp = *S; // 暂存栈顶结点
+	*value = temp->data; // 保存栈顶元素到 value
+	*S = (*S)->next; // 更新栈顶指针为下一个结点
+	free(temp); // 释放原栈顶结点的内存
+	return true;
+}
+
+// 判断栈是否为空
+bool StackEmpty(LiStack S) {
+	return S == NULL;
+}
+
+// 获取栈顶元素
+bool GetTop(LiStack S, int* e) {
+	if (S == NULL) {
+		return false; // 栈空，获取失败
+	}
+
+	*e = S->data; // 将栈顶元素赋值给 e
+	return true;
+}
+
+int main() {
+	LiStack S;
+	int e;
+
+	InitStack(&S); // 初始化栈
+
+	// 示例入栈操作
+	PushStack(&S, 10);
+	PushStack(&S, 20);
+	PushStack(&S, 30);
+
+	// 示例出栈操作
+	while (!StackEmpty(S)) {
+		PopStack(&S, &e);
+		printf("出栈元素：%d\n", e);
+	}
+
+	return 0;
+}
+```
+总结下来就是类似于单链表的头插法
+## 遇到的问题
+### new和malloc的区别
+在C++和C语言中，`new` 和 `malloc()` 都用于动态分配内存，但是它们有几点不同之处：
+
+#### `new` 运算符（C++）
+
+1. **类型安全性**：
+   - `new` 是 C++ 中的运算符，它是类型安全的。在分配内存时，`new` 会考虑到要分配的对象的类型，并返回相应类型的指针。因此，`new` 返回的是所请求类型的指针，不需要进行显式的类型转换。
+
+2. **构造函数的调用**：
+   - 使用 `new` 分配对象时，会调用对象的构造函数来初始化对象，这是 `new` 的一个重要特性。这使得在分配内存后，对象的状态可以被初始化。
+
+3. **内存管理**：
+   - `new` 和 `delete` 是配对使用的，用于分配和释放单个对象或数组。对于单个对象，使用 `new` 和 `delete`；对于数组，使用 `new[]` 和 `delete[]`。
+
+4. **示例用法**：
+   ```cpp
+   // 单个对象的动态分配
+   MyClass* obj = new MyClass;
+
+   // 数组的动态分配
+   int* arr = new int[10];
+   ```
+
+#### `malloc()` 函数（C）
+
+1. **类型不安全**：
+   - `malloc()` 是 C 语言中的函数，它不关心分配的内存是什么类型。它总是返回 `void*` 类型的指针，需要进行显式的类型转换为适当的类型。
+
+2. **构造函数的调用**：
+   - `malloc()` 仅分配内存，并不会调用对象的构造函数来初始化对象。这意味着使用 `malloc()` 分配的内存中的内容是未定义的，必须手动初始化。
+
+3. **内存管理**：
+   - `malloc()` 和 `free()` 是配对使用的，用于分配和释放内存块。可以用 `malloc()` 分配单个内存块，或者 `malloc()` 结合 `sizeof` 运算符分配数组。
+
+4. **示例用法**：
+   ```c
+   // 单个对象的动态分配
+   MyClass* obj = (MyClass*)malloc(sizeof(MyClass));
+
+   // 数组的动态分配
+   int* arr = (int*)malloc(10 * sizeof(int));
+   ```
+
+#### 区别总结：
+
+- **类型安全性**：`new` 是类型安全的，`malloc()` 返回 `void*` 需要类型转换。
+- **构造函数调用**：`new` 调用对象的构造函数，`malloc()` 不会。
+- **内存管理**：`new` 和 `delete` 是 C++ 的运算符，用于对象的动态内存管理；`malloc()` 和 `free()` 是 C 的函数，用于内存块的动态内存管理。
+
+在 C++ 中推荐使用 `new` 和 `delete`，因为它们提供了更高的类型安全性和对象生命周期管理。在 C 语言中则使用 `malloc()` 和 `free()`。
+### 引用结构体里的元素.和->的区别
+在 C 语言中，`.` 和 `->` 是用来访问结构体成员的运算符，它们的选择取决于你操作的是结构体变量本身还是指向结构体的指针。
+
+1. **`.` 运算符**：
+   - 当你操作的是结构体变量本身时，使用 `.` 运算符来访问结构体的成员。
+   - 例如，如果有一个结构体定义如下：
+     ```c
+     struct Person {
+         char name[50];
+         int age;
+     };
+     ```
+     那么你可以这样访问结构体变量的成员：
+     ```c
+     struct Person p;
+     p.age = 30;
+     ```
+     这里使用了 `.` 运算符来设置 `p` 结构体变量的 `age` 成员。
+
+2. **`->` 运算符**：
+   - 当你操作的是指向结构体的指针时，使用 `->` 运算符来访问结构体的成员。
+   - 例如，如果有一个指向结构体的指针：
+     ```c
+     struct Person* ptrPerson;
+     ```
+     你可以通过 `->` 运算符访问指针所指向的结构体的成员：
+     ```c
+     ptrPerson->age = 30;
+     ```
+     这里 `ptrPerson` 是一个指向 `struct Person` 的指针，使用 `->` 运算符可以设置指针所指向结构体的 `age` 成员。
+
+总结起来：
+
+- 使用 `.` 运算符时，操作的是结构体变量本身。
+- 使用 `->` 运算符时，操作的是指向结构体的指针。
+
+这两个运算符的选择是根据你所操作的数据类型来决定的，以确保正确访问和修改结构体的成员。
